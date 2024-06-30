@@ -4,3 +4,4 @@ torch==1.13.1
 streamlit==1.18.1
 finnhub-python==2.4.0
 altair==4.2.2
+numpy==1.23.5
