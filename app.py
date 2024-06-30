@@ -29,15 +29,15 @@ def summarize_news_combined(news_list):
     # 모델 지정 및 설정
     summarizer = pipeline("summarization", model="sshleifer/distilbart-cnn-12-6")
 
-    # 텍스트 분할
-    max_input_length = 1024  # 모델이 한 번에 처리할 수 있는 최대 토큰 수
+    # 텍스트 분할 및 요약
     combined_text = ' '.join([news['summary'] if news['summary'] else news['headline'] for news in news_list])
+    max_input_length = 512  # 모델이 한 번에 처리할 수 있는 최대 토큰 수
     input_texts = [combined_text[i:i+max_input_length] for i in range(0, len(combined_text), max_input_length)]
     
     summaries = []
     for input_text in input_texts:
         try:
-            summary = summarizer(input_text, max_length=150, min_length=50, do_sample=False)[0]['summary_text']
+            summary = summarizer(input_text, max_length=min(150, len(input_text)//2), min_length=25, do_sample=False)[0]['summary_text']
             summaries.append(summary)
         except Exception as e:
             summaries.append("요약을 생성하는 데 실패했습니다.")
