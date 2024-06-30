@@ -37,7 +37,7 @@ def summarize_news_combined(news_list):
     summaries = []
     for input_text in input_texts:
         try:
-            summary = summarizer(input_text, max_length=min(150, len(input_text)//2), min_length=25, do_sample=False)[0]['summary_text']
+            summary = summarizer(input_text, max_length=150, min_length=30, do_sample=False)[0]['summary_text']
             summaries.append(summary)
         except Exception as e:
             summaries.append("요약을 생성하는 데 실패했습니다.")
