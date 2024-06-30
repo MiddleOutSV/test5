@@ -21,9 +21,13 @@ def fetch_news(ticker, period='1d'):
     from_date_str = from_date.strftime('%Y-%m-%d')
     to_date_str = to_date.strftime('%Y-%m-%d')
     
-    # 뉴스 가져오기
-    news = finnhub_client.company_news(ticker, _from=from_date_str, to=to_date_str)
-    return news
+    try:
+        # 뉴스 가져오기
+        news = finnhub_client.company_news(ticker, _from=from_date_str, to=to_date_str)
+        return news
+    except finnhub.exceptions.FinnhubAPIException as e:
+        st.error(f"뉴스를 가져오는 데 실패했습니다: {e}")
+        return []
 
 def summarize_news(news_list):
     summarizer = pipeline("summarization")
