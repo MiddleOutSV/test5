@@ -3,7 +3,7 @@ import finnhub
 from transformers import pipeline
 
 # Finnhub API 키 설정 (Secrets에서 불러오기)
-finnhub_api_key = st.secrets["finnhub_api_key"]
+finnhub_api_key = st.secrets["finnhub"]["api_key"]
 finnhub_client = finnhub.Client(api_key=finnhub_api_key)
 
 def fetch_news(ticker):
@@ -34,3 +34,10 @@ def main():
                 summaries = summarize_news(news_list)
                 st.success('뉴스 가져오기 완료!')
                 
+                for news in summaries:
+                    st.subheader(news['title'])
+                    st.write(news['summary'])
+                    st.write(f"[링크]({news['link']})")
+
+if __name__ == '__main__':
+    main()
