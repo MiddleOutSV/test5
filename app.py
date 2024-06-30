@@ -26,15 +26,24 @@ def fetch_news(ticker, period='1d'):
     return news
 
 def summarize_news_combined(news_list):
-    summarizer = pipeline("summarization")
+    # 모델 지정 및 설정
+    summarizer = pipeline("summarization", model="sshleifer/distilbart-cnn-12-6")
+
+    # 텍스트 분할
+    max_input_length = 1024  # 모델이 한 번에 처리할 수 있는 최대 토큰 수
     combined_text = ' '.join([news['summary'] if news['summary'] else news['headline'] for news in news_list])
+    input_texts = [combined_text[i:i+max_input_length] for i in range(0, len(combined_text), max_input_length)]
     
-    try:
-        summary = summarizer(combined_text, max_length=150, min_length=50, do_sample=False)[0]['summary_text']
-    except Exception as e:
-        summary = "요약을 생성하는 데 실패했습니다."
+    summaries = []
+    for input_text in input_texts:
+        try:
+            summary = summarizer(input_text, max_length=150, min_length=50, do_sample=False)[0]['summary_text']
+            summaries.append(summary)
+        except Exception as e:
+            summaries.append("요약을 생성하는 데 실패했습니다.")
     
-    return summary
+    combined_summary = ' '.join(summaries)
+    return combined_summary
 
 def main():
     st.title('주식 뉴스 요약 앱')
