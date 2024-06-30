@@ -30,7 +30,10 @@ def summarize_news(news_list):
     summaries = []
     for news in news_list:
         try:
-            summary = summarizer(news['summary'], max_length=50, min_length=25, do_sample=False)[0]['summary_text']
+            # 뉴스 요약
+            input_text = news['summary'] if news['summary'] else news['headline']
+            max_length = min(len(input_text) // 2, 50)  # 입력 텍스트 길이에 따른 max_length 조정
+            summary = summarizer(input_text, max_length=max_length, min_length=10, do_sample=False)[0]['summary_text']
         except Exception as e:
             summary = "요약을 생성하는 데 실패했습니다."
         summaries.append({"title": news['headline'], "summary": summary, "link": news['url']})
