@@ -21,13 +21,9 @@ def fetch_news(ticker, period='1d'):
     from_date_str = from_date.strftime('%Y-%m-%d')
     to_date_str = to_date.strftime('%Y-%m-%d')
     
-    try:
-        # 뉴스 가져오기
-        news = finnhub_client.company_news(ticker, _from=from_date_str, to=to_date_str)
-        return news
-    except finnhub.exceptions.FinnhubAPIException as e:
-        st.error(f"뉴스를 가져오는 데 실패했습니다: {e}")
-        return []
+    # 뉴스 가져오기
+    news = finnhub_client.company_news(ticker, _from=from_date_str, to=to_date_str)
+    return news
 
 def summarize_news(news_list):
     summarizer = pipeline("summarization")
@@ -55,23 +51,4 @@ def translate_to_korean(text):
 def main():
     st.title('주식 뉴스 요약 및 번역 앱')
     
-    ticker = st.text_input('주식 Ticker를 입력하세요 (예: AAPL)')
-    period = st.selectbox('기간을 선택하세요', ['1d', '1wk', '1mo'])
-    
-    if st.button('뉴스 가져오기'):
-        with st.spinner('뉴스를 가져오는 중...'):
-            news_list = fetch_news(ticker, period)
-            if news_list:
-                summaries = summarize_news(news_list)
-                st.success('뉴스 가져오기 및 요약 완료!')
-                
-                for news in summaries:
-                    st.subheader(news['title'])
-                    st.write(news['summary'])
-                    korean_summary = translate_to_korean(news['summary'])
-                    st.write("번역된 요약:")
-                    st.write(korean_summary)
-                    st.write(f"[링크]({news['link']})")
-
-if __name__ == '__main__':
-    main()
+    ticker = st.text
