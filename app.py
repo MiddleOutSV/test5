@@ -25,19 +25,16 @@ def fetch_news(ticker, period='1d'):
     news = finnhub_client.company_news(ticker, _from=from_date_str, to=to_date_str)
     return news
 
-def summarize_news(news_list):
+def summarize_news_combined(news_list):
     summarizer = pipeline("summarization")
-    summaries = []
-    for news in news_list:
-        try:
-            # 뉴스 요약
-            input_text = news['summary'] if news['summary'] else news['headline']
-            max_length = min(len(input_text) // 2, 50)  # 입력 텍스트 길이에 따른 max_length 조정
-            summary = summarizer(input_text, max_length=max_length, min_length=10, do_sample=False)[0]['summary_text']
-        except Exception as e:
-            summary = "요약을 생성하는 데 실패했습니다."
-        summaries.append({"title": news['headline'], "summary": summary, "link": news['url']})
-    return summaries
+    combined_text = ' '.join([news['summary'] if news['summary'] else news['headline'] for news in news_list])
+    
+    try:
+        summary = summarizer(combined_text, max_length=150, min_length=50, do_sample=False)[0]['summary_text']
+    except Exception as e:
+        summary = "요약을 생성하는 데 실패했습니다."
+    
+    return summary
 
 def main():
     st.title('주식 뉴스 요약 앱')
@@ -49,13 +46,9 @@ def main():
         with st.spinner('뉴스를 가져오는 중...'):
             news_list = fetch_news(ticker, period)
             if news_list:
-                summaries = summarize_news(news_list)
-                st.success('뉴스 가져오기 완료!')
-                
-                for news in summaries:
-                    st.subheader(news['title'])
-                    st.write(news['summary'])
-                    st.write(f"[링크]({news['link']})")
+                combined_summary = summarize_news_combined(news_list)
+                st.success('뉴스 요약 완료!')
+                st.write(combined_summary)
 
 if __name__ == '__main__':
     main()
