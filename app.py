@@ -26,8 +26,8 @@ def fetch_news(ticker, period='1d'):
     return news
 
 def summarize_news_combined(news_list):
-    # 모델 지정 및 설정
-    summarizer = pipeline("summarization", model="sshleifer/distilbart-cnn-12-6")
+    # 작은 모델 사용
+    summarizer = pipeline("summarization", model="t5-small")
 
     # 텍스트 분할 및 요약
     combined_text = ' '.join([news['summary'] if news['summary'] else news['headline'] for news in news_list])
