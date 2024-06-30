@@ -44,7 +44,7 @@ def summarize_news(news_list):
     return summaries
 
 def translate_to_korean(text):
-    model_name = 'Helsinki-NLP/opus-mt-en-ko'
+    model_name = 'Helsinki-NLP/opus-mt-en-ko-finetuned'
     tokenizer = MarianTokenizer.from_pretrained(model_name)
     model = MarianMTModel.from_pretrained(model_name)
     
