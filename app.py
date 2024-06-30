@@ -1,6 +1,6 @@
 import streamlit as st
 import finnhub
-from transformers import pipeline
+from transformers import pipeline, MarianMTModel, MarianTokenizer
 from datetime import datetime, timedelta
 
 # Finnhub API 키 설정 (Secrets에서 불러오기)
@@ -25,28 +25,31 @@ def fetch_news(ticker, period='1d'):
     news = finnhub_client.company_news(ticker, _from=from_date_str, to=to_date_str)
     return news
 
-def summarize_news_combined(news_list):
-    # 작은 모델 사용
-    summarizer = pipeline("summarization", model="t5-small")
-
-    # 텍스트 분할 및 요약
-    combined_text = ' '.join([news['summary'] if news['summary'] else news['headline'] for news in news_list])
-    max_input_length = 512  # 모델이 한 번에 처리할 수 있는 최대 토큰 수
-    input_texts = [combined_text[i:i+max_input_length] for i in range(0, len(combined_text), max_input_length)]
-    
+def summarize_news(news_list):
+    summarizer = pipeline("summarization")
     summaries = []
-    for input_text in input_texts:
+    for news in news_list:
         try:
-            summary = summarizer(input_text, max_length=150, min_length=30, do_sample=False)[0]['summary_text']
-            summaries.append(summary)
+            # 뉴스 요약
+            input_text = news['summary'] if news['summary'] else news['headline']
+            max_length = min(len(input_text) // 2, 50)  # 입력 텍스트 길이에 따른 max_length 조정
+            summary = summarizer(input_text, max_length=max_length, min_length=10, do_sample=False)[0]['summary_text']
         except Exception as e:
-            summaries.append("요약을 생성하는 데 실패했습니다.")
+            summary = "요약을 생성하는 데 실패했습니다."
+        summaries.append({"title": news['headline'], "summary": summary, "link": news['url']})
+    return summaries
+
+def translate_to_korean(text):
+    model_name = 'Helsinki-NLP/opus-mt-en-ko'
+    tokenizer = MarianTokenizer.from_pretrained(model_name)
+    model = MarianMTModel.from_pretrained(model_name)
     
-    combined_summary = ' '.join(summaries)
-    return combined_summary
+    translated = model.generate(**tokenizer(text, return_tensors="pt", padding=True))
+    korean_text = tokenizer.decode(translated[0], skip_special_tokens=True)
+    return korean_text
 
 def main():
-    st.title('주식 뉴스 요약 앱')
+    st.title('주식 뉴스 요약 및 번역 앱')
     
     ticker = st.text_input('주식 Ticker를 입력하세요 (예: AAPL)')
     period = st.selectbox('기간을 선택하세요', ['1d', '1wk', '1mo'])
@@ -55,9 +58,16 @@ def main():
         with st.spinner('뉴스를 가져오는 중...'):
             news_list = fetch_news(ticker, period)
             if news_list:
-                combined_summary = summarize_news_combined(news_list)
-                st.success('뉴스 요약 완료!')
-                st.write(combined_summary)
+                summaries = summarize_news(news_list)
+                st.success('뉴스 가져오기 및 요약 완료!')
+                
+                for news in summaries:
+                    st.subheader(news['title'])
+                    st.write(news['summary'])
+                    korean_summary = translate_to_korean(news['summary'])
+                    st.write("번역된 요약:")
+                    st.write(korean_summary)
+                    st.write(f"[링크]({news['link']})")
 
 if __name__ == '__main__':
     main()
