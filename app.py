@@ -2,10 +2,14 @@ import streamlit as st
 import finnhub
 from transformers import pipeline, MarianMTModel, MarianTokenizer
 from datetime import datetime, timedelta
+import os
 
 # Finnhub API 키 설정 (Secrets에서 불러오기)
 finnhub_api_key = st.secrets["finnhub"]["api_key"]
 finnhub_client = finnhub.Client(api_key=finnhub_api_key)
+
+# 캐시 디렉토리 설정
+os.environ['TRANSFORMERS_CACHE'] = './models/'
 
 def fetch_news(ticker, period='1d'):
     # 현재 날짜와 기간에 따른 날짜 계산
